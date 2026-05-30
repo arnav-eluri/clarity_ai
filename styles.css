@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 :root {
-    --primary: #050E3C;
-    --primary-hover: #050E3C;
-    --secondary: #002455;
-    --bg-color: #F9FAFB;
-    --card-bg: rgba(255, 255, 255, 0.85);
-    --text-main: #050E3C;
-    --text-muted: #4B5563;
-    --danger: #E11D48;
-    --warning: #F59E0B;
-    --success: #10B981;
-    --radius: 16px;
-    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+    --primary: #0f172a;
+    --primary-hover: #1e293b;
+    --secondary: #334155;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --radius: 12px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --glass-border: 1px solid #e2e8f0;
 }
 
 * {
@@ -32,54 +32,27 @@ body {
     font-family: 'Outfit', sans-serif;
     color: var(--text-main);
     line-height: 1.6;
-    min-height: 100vh;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Ensure body takes at least full viewport height */
-    background-color: #fff;
-    background-image:
-        radial-gradient(at 10% 20%, #EEF5FF 0%, rgba(238, 245, 255, 0) 50%),
-        radial-gradient(at 90% 10%, #B4D4FF 0%, rgba(180, 212, 255, 0) 50%),
-        radial-gradient(at 50% 70%, #86B6F6 0%, rgba(134, 182, 246, 0) 50%),
-        linear-gradient(120deg, #FFFFFF 0%, #EEF5FF 100%);
-    background-attachment: fixed;
-    background-size: 200% 200%;
-    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+    background-color: var(--bg-color);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes gradientBG {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
 
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
 
 /* Navigation */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem 2rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     position: fixed;
     top: 0;
     left: 0;
@@ -313,11 +286,8 @@ main {
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1.5rem;
-    background: linear-gradient(100deg, #050E3C 0%, #0049b0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -2px;
+    color: var(--text-main);
+    letter-spacing: -1.5px;
 }
 
 .hero-section p {
@@ -353,7 +323,7 @@ main {
 .cta-btn.primary {
     background: var(--primary);
     color: white;
-    box-shadow: 0 4px 15px rgba(25, 4, 130, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cta-btn.primary:hover {
@@ -417,9 +387,8 @@ main {
 
 /* Footer */
 .site-footer {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
     padding: 2rem 1.5rem 1rem;
     color: var(--text-muted);
     font-size: 0.9rem;
