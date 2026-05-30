@@ -1,25 +1,51 @@
 // Navigation Logic
 // No specific JS needed for navigation in MPA mode as we use standard links.
 
+// Prevent double-tap zoom on buttons
+document.addEventListener('touchstart', function() {}, false);
+
+// Handle viewport meta tag for mobile
+function optimizeViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes');
+    }
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', optimizeViewport);
+} else {
+    optimizeViewport();
+}
+
 
 // Analysis Logic
 async function analyzeContent() {
-    const textInput = document.getElementById('input-text').value;
+    const textInput = document.getElementById('input-text');
+    if (!textInput) return;
+    
+    const text = textInput.value.trim();
     const btn = document.getElementById('analyze-btn');
     const btnText = document.getElementById('btn-text');
     const loader = document.getElementById('btn-loader');
     const resultsArea = document.getElementById('results-area');
 
-    if (!textInput.trim()) {
-        alert("Please enter some text to analyze.");
+    if (!text) {
+        showErrorMessage("Please enter some text to analyze.");
+        return;
+    }
+
+    if (text.length < 10) {
+        showErrorMessage("Please enter at least 10 characters to analyze.");
         return;
     }
 
     // UI Loading State
-    btn.disabled = true;
-    btnText.classList.add('hidden');
-    loader.classList.remove('hidden');
-    resultsArea.classList.add('hidden');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.classList.add('hidden');
+    if (loader) loader.classList.remove('hidden');
+    if (resultsArea) resultsArea.classList.add('hidden');
 
     try {
         const response = await fetch('/api/analyze', {
@@ -27,25 +53,59 @@ async function analyzeContent() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ text: textInput })
+            body: JSON.stringify({ text: text })
         });
 
         if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Server error: ${response.status} ${errorBody}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Server error: ${response.status}`);
         }
 
         const data = await response.json();
         renderResults(data);
+        if (resultsArea) resultsArea.classList.remove('hidden');
 
     } catch (error) {
         console.error("Analysis failed:", error);
-        alert("Failed to analyze content. Please check the console or try again.");
+        showErrorMessage(error.message || "Failed to analyze content. Please try again.");
     } finally {
         // Reset UI
-        btn.disabled = false;
-        btnText.classList.remove('hidden');
-        loader.classList.add('hidden');
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.classList.remove('hidden');
+        if (loader) loader.classList.add('hidden');
+    }
+}
+
+function showErrorMessage(message) {
+    const resultsArea = document.getElementById('results-area');
+    if (!resultsArea) {
+        alert(message);
+        return;
+    }
+    
+    resultsArea.classList.remove('hidden');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'result-card';
+    errorDiv.style.borderColor = '#dc2626';
+    errorDiv.innerHTML = `
+        <div class="card-top">
+            <div class="brand">
+                <div class="brand-icon danger">
+                    <i data-feather="alert-circle"></i>
+                </div>
+                <div>
+                    <p class="brand-name">Error</p>
+                    <span class="meta-text">Analysis failed</span>
+                </div>
+            </div>
+        </div>
+        <p style="color: #dc2626; margin: 0;">${message}</p>
+    `;
+    
+    const resultsGrid = resultsArea.querySelector('.results-grid');
+    if (resultsGrid) {
+        resultsGrid.innerHTML = '';
+        resultsGrid.appendChild(errorDiv);
     }
 }
 
@@ -198,7 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Chatbot Logic
 const chatState = {
-    history: []
+    history: [],
+    isLoading: false
 };
 
 function appendChatMessage(role, text) {
@@ -208,8 +269,13 @@ function appendChatMessage(role, text) {
     const bubble = document.createElement('div');
     bubble.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
     bubble.textContent = text;
+    bubble.setAttribute('role', 'article');
     container.appendChild(bubble);
-    container.scrollTop = container.scrollHeight;
+    
+    // Scroll to bottom with smooth behavior
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 0);
 }
 
 function toggleTypingIndicator(show) {
@@ -222,10 +288,14 @@ function initChatbot() {
     const form = document.getElementById('chat-form');
     const input = document.getElementById('user-input');
     const messages = document.getElementById('chat-messages');
+    
     if (!form || !input || !messages) return;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        
+        if (chatState.isLoading) return;
+        
         const text = input.value.trim();
         if (!text) return;
 
@@ -233,6 +303,7 @@ function initChatbot() {
         chatState.history.push({ role: 'user', text });
         input.value = '';
         input.disabled = true;
+        chatState.isLoading = true;
         toggleTypingIndicator(true);
 
         try {
@@ -246,8 +317,7 @@ function initChatbot() {
             });
 
             if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`Chat failed: ${response.status} ${errorBody}`);
+                throw new Error(`Chat service error: ${response.status}`);
             }
 
             const data = await response.json();
@@ -260,6 +330,7 @@ function initChatbot() {
         } finally {
             toggleTypingIndicator(false);
             input.disabled = false;
+            chatState.isLoading = false;
             input.focus();
         }
     });

@@ -11,6 +11,15 @@ load_dotenv()
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)  # Enable CORS for all routes
 
+# Security headers for deployment
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
+
 # Configure Gemini API
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
@@ -261,7 +270,6 @@ def analyze_content():
             "error": "An error occurred during analysis",
             "details": str(e)
         }), 500
-        return jsonify({"error": "Failed to analyze content", "details": str(e)}), 500
 
 
 # -----------------------------
