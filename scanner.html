@@ -13,6 +13,12 @@
 </head>
 
 <body>
+    <!-- Preloader -->
+    <div class="preloader-container">
+        <div class="preloader-logo">Clarity</div>
+        <div class="preloader-track"><div class="preloader-fill"></div></div>
+    </div>
+
      <!-- Navigation -->
     <nav class="navbar">
         <div class="logo">
@@ -35,7 +41,7 @@
     <!-- Main Content -->
     <main id="app">
         <!-- Hero Section -->
-        <section class="hero-section">
+        <section class="hero-section compact">
             <div class="hero-content">
                 <h1>Credibility Scanner</h1>
                 <p>Paste text or a URL to analyze for bias, fallacies, and credibility markers</p>
@@ -43,9 +49,6 @@
         </section>
 
         <section class="scanner-container">
-            <h2>Credibility Scanner</h2>
-            <p>Paste text or a URL to analyze for bias and fallacies.</p>
-
             <textarea id="input-text" placeholder="Paste article text here..."></textarea>
 
             <button id="analyze-btn" class="primary-btn" onclick="analyzeContent()">
@@ -149,46 +152,26 @@
         </section>
     </main>
 
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h2 class="footer-logo">Clarity</h2>
+                <p class="footer-tag">Think Clearly. Choose Wisely.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="scanner.html">Scanner</a></li>
+                    <li><a href="clarity_analysis.html">Clarity Analysis</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2025 NeuroFusion Tech • All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
     <script src="script.js"></script>
-    <script>
-        // Initialize feather icons
-        feather.replace();
-        
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                    const icon = this.querySelector('i');
-                    if (navLinks.classList.contains('active')) {
-                        feather.icons.x.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    } else {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
-            }
-            
-            // Close menu when clicking on a nav link
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('active');
-                    const icon = document.querySelector('.menu-toggle i');
-                    if (icon) {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

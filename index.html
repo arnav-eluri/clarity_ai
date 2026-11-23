@@ -1,200 +1,771 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Clarity - Your AI companion for critical thinking and media literacy">
-    <meta name="theme-color" content="#050E3C">
-    <title>Clarity - Critical Thinking Companion</title>
+    <meta name="description" content="Clarity AI — Think clearly, spot bias, reflect mindfully">
+    <meta name="theme-color" content="#0f172a">
+    <title>Clarity AI — Think Clearly</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        /* ===== BENTO LAYOUT ===== */
+        body { background: #f1f5f9; }
+
+        .bento-wrapper {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 88px 1.25rem 3rem;
+        }
+
+        .bento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .bento-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .bento-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            color: var(--text-main);
+        }
+
+        .bento-title span { color: var(--text-muted); font-weight: 400; }
+
+        .header-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            background: var(--primary);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .header-chip:hover { opacity: 0.88; transform: translateY(-1px); }
+
+        /* ===== BENTO GRID ===== */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        /* Base card */
+        .bc {
+            background: #fff;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(15,23,42,0.07);
+            box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .bc:hover { box-shadow: 0 6px 20px rgba(15,23,42,0.09); transform: translateY(-1px); }
+        .bc.span-2 { grid-column: span 2; }
+        .bc.span-3 { grid-column: span 3; }
+
+        .bc-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Accent card */
+        .bc.accent {
+            background: linear-gradient(140deg, #0d0245 0%, #2a1680 100%);
+            border: none;
+            color: white;
+        }
+
+        .bc.accent .bc-label { color: rgba(255,255,255,0.55); }
+        .bc.accent:hover { box-shadow: 0 8px 28px rgba(13,2,69,0.35); }
+
+        /* Accent soft card */
+        .bc.accent-soft {
+            background: linear-gradient(140deg, #f8fafc, #eef2ff);
+        }
+
+        /* ===== SCANNER INPUT CARD ===== */
+        .bc-scanner textarea {
+            width: 100%;
+            height: 108px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            resize: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--text-main);
+            background: #fafafa;
+        }
+
+        .bc-scanner textarea:focus {
+            outline: none;
+            border-color: #0d0245;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(13,2,69,0.08);
+        }
+
+        .bc-scanner textarea::placeholder { color: #94a3b8; }
+
+        .scanner-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.875rem;
+            flex-wrap: wrap;
+        }
+
+        .analyze-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .analyze-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,2,69,0.3); }
+        .analyze-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .scanner-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ===== SCORE CARD ===== */
+        .bc-score .score-num {
+            font-size: 3.75rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 0.25rem 0 0.5rem;
+            transition: color 0.4s;
+        }
+
+        .bc-score .risk-tag {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            transition: color 0.4s;
+        }
+
+        .pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+
+        .bpill {
+            padding: 0.28rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(99,102,241,0.1);
+            color: #4338ca;
+        }
+
+        .bc-timestamp {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+        }
+
+        /* ===== SUMMARY CARD ===== */
+        .bc-summary p {
+            font-size: 0.9rem;
+            color: #374151;
+            line-height: 1.65;
+        }
+
+        /* ===== ISSUES CARD ===== */
+        .issue-item {
+            padding: 0.6rem 0.8rem;
+            border-radius: 10px;
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.1);
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-item:last-child { margin-bottom: 0; }
+        .issue-title { font-weight: 600; font-size: 0.78rem; color: #be123c; margin-bottom: 0.15rem; }
+        .issue-item p { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
+
+        /* ===== RECS CARD ===== */
+        .rec-chip {
+            display: inline-block;
+            padding: 0.32rem 0.8rem;
+            background: rgba(14,165,233,0.1);
+            color: #0369a1;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0.2rem;
+        }
+
+        .placeholder-note {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ===== INSIGHT ACCENT CARD ===== */
+        .insight-deco {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+        }
+
+        .insight-deco.d1 { width: 130px; height: 130px; bottom: -40px; right: -40px; }
+        .insight-deco.d2 { width: 70px; height: 70px; top: 24px; right: 56px; }
+
+        .bc.accent .insight-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.95);
+            margin: 0 0 0.6rem;
+        }
+
+        .bc.accent .insight-sub {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.65);
+            margin: 0;
+        }
+
+        .insight-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 1.25rem;
+            background: rgba(255,255,255,0.14);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .insight-cta:hover { background: rgba(255,255,255,0.24); }
+
+        /* ===== REFLECTION CARD ===== */
+        .step-track {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .step-seg {
+            flex: 1;
+            height: 3px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            transition: background 0.3s;
+        }
+
+        .step-seg.done { background: var(--primary); }
+        .step-seg.active { background: var(--primary); opacity: 0.5; }
+
+        .reflect-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .reflect-prompt {
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.45;
+            margin-bottom: 0.75rem;
+        }
+
+        .bc-reflection textarea {
+            width: 100%;
+            height: 76px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-family: inherit;
+            font-size: 0.88rem;
+            resize: none;
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .bc-reflection textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(13,2,69,0.08);
+        }
+
+        .reflect-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .reflect-counter {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .reflect-actions { display: flex; gap: 0.5rem; }
+
+        .rbtn {
+            padding: 0.48rem 1.1rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .rbtn-ghost {
+            background: transparent;
+            border: 1.5px solid #e2e8f0;
+            color: var(--text-muted);
+        }
+
+        .rbtn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+        .rbtn-primary { background: var(--primary); color: white; }
+        .rbtn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .rbtn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .reflect-done {
+            text-align: center;
+            padding: 0.5rem 0;
+        }
+
+        .reflect-done-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(16,185,129,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.6rem;
+            color: #10b981;
+        }
+
+        .reflect-done h3 {
+            font-size: 1rem;
+            color: var(--text-main);
+            margin-bottom: 0.4rem;
+        }
+
+        .reflect-done p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 0.875rem;
+        }
+
+        /* ===== TEAM CARD ===== */
+        .team-name { font-size: 1.3rem; font-weight: 700; margin: 0.15rem 0 0.75rem; color: var(--text-main); }
+
+        .team-ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .team-ul li {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .team-ul li::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
+
+        /* ===== GUIDED REFLECTION (AI) ===== */
+        .bc-ai-reflect { display: none; }
+        .bc-ai-reflect.visible { display: block; }
+
+        .ai-reflect-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .ai-reflect-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .ai-reflect-step {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .ai-reflect-prompt {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.4rem;
+        }
+
+        .ai-reflect-response {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .bc.span-3 { grid-column: span 2; }
+        }
+
+        @media (max-width: 580px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .bc.span-2, .bc.span-3 { grid-column: span 1; }
+            .bento-title { font-size: 1.75rem; }
+            .bento-wrapper { padding: 76px 1rem 2rem; }
+            .bc-score .score-num { font-size: 2.75rem; }
+        }
+    </style>
 </head>
 
 <body>
-
     <!-- Preloader -->
     <div class="preloader-container">
-        <div class="loader-box">
-            <div class="l1"></div>
-            <div class="l2"></div>
-            <div class="l3"></div>
-        </div>
+        <div class="preloader-logo">Clarity</div>
+        <div class="preloader-track"><div class="preloader-fill"></div></div>
     </div>
 
-    <!-- Navigation -->
+    <!-- Navbar -->
     <nav class="navbar">
-        <div class="logo">
-            <span>Clarity AI</span>
-        </div>
-
-        <button class="menu-toggle" aria-label="Toggle menu">
-            <i data-feather="menu"></i>
-        </button>
-
+        <div class="logo"><span>Clarity AI</span></div>
+        <button class="menu-toggle" aria-label="Toggle menu"><i data-feather="menu"></i></button>
         <div class="nav-links">
-            <a href="index.html" class="nav-btn">Home</a>
-            <a href="scanner.html" class="nav-btn active">Scanner</a>
-            <a href="clarity_analysis.html" class="nav-btn">Clarity Analysis</a>
-            <a href="reflection-guide.html" class="nav-btn">Reflection Guide</a>
-            <a href="chatbot.html" class="nav-btn">Chatbot</a>
+            <a href="index.html" class="nav-btn active">Home</a>
+            <a href="chatbot.html" class="nav-btn">AI Chat</a>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main id="app">
+    <!-- Bento Dashboard -->
+    <div class="bento-wrapper">
 
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1>Think Clearly. <br>Spot the Bias.</h1>
-                <p>Your AI companion for navigating the information age.</p>
+        <!-- Header -->
+        <div class="bento-header">
+            <div>
+                <div class="bento-eyebrow">Clarity AI · Mental Health &amp; Critical Thinking</div>
+                <h1 class="bento-title">Think Clearly.<br><span>Spot the Bias.</span></h1>
+            </div>
+            <a href="chatbot.html" class="header-chip">
+                <i data-feather="message-circle"></i> AI Chat
+            </a>
+        </div>
 
-                <div class="hero-buttons">
-                    <a href="scanner.html" class="cta-btn primary">Start Analysis</a>
-                    <a href="#dashboard" class="cta-btn secondary">Learn More</a>
+        <!-- Bento Grid -->
+        <div class="bento-grid">
+
+            <!-- 1 · Scanner Input (large) -->
+            <div class="bc bc-scanner span-2">
+                <div class="bc-label"><i data-feather="search"></i> Credibility Scanner</div>
+                <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:0.875rem; line-height:1.5;">
+                    Paste any article, post, or claim. The AI checks for bias, fallacies, and misinformation.
+                </p>
+                <textarea id="input-text" placeholder="Paste news article, social media post, claim, or speech…"></textarea>
+                <div class="scanner-actions">
+                    <button id="analyze-btn" class="analyze-btn" onclick="analyzeContent()">
+                        <i data-feather="zap"></i>
+                        <span id="btn-text">Analyze</span>
+                        <span id="btn-loader" class="loader hidden"></span>
+                    </button>
+                    <span class="scanner-hint">Results appear instantly below</span>
                 </div>
             </div>
 
-            <div class="scroll-indicator">
-                <span>Scroll Down</span>
-                <i data-feather="chevron-down" class="scroll-arrow"></i>
-            </div>
-        </section>
-
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="dashboard-section">
-
-            <div class="dashboard-grid">
-
-                <!-- Left Column: Cards -->
-                <div class="dashboard-left">
-
-                    <!-- Card 1 -->
-                    <div class="info-card expanded">
-                        <div class="card-header">
-                            <h3>Daily Insight</h3>
-                            <i data-feather="minus"></i>
-                        </div>
-
-                        <div class="card-content">
-                            <p>Did you know? 60% of people share headlines without reading the article. Always check the
-                                source before you share.</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="info-card expanded">
-                        <div class="card-header">
-                            <h3>Our Team</h3>
-                            <i data-feather="users"></i>
-                        </div>
-
-                        <div class="card-content">
-                            <div class="team-info">
-                                <h4>Team Name: NeuroFusion</h4>
-                                <ul class="team-members">
-                                    <li>Moumita Paul</li>
-                                    <li>Likith C</li>
-                                    <li>Shraddha B R</li>
-                                    <li>Ruhi Sharma</li>
-                                    <li>Arnav Elluri</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Right Column: Feature Card -->
-                <div class="feature-card">
-
-                    <div class="feature-content">
-                        <span class="badge">New Module</span>
-                        <h2>Master Your Mind</h2>
-                        <p>Analyze text for cognitive load, clarity, and potential distortions with our advanced analysis tool.</p>
-
-                        <a href="clarity_analysis.html" class="feature-btn" style="text-decoration: none;">
-                            Clarity Analysis <i data-feather="arrow-right"></i>
-                        </a>
-                    </div>
-
-                    <div class="feature-visual">
-                        <div class="visual-circle"></div>
-                        <div class="visual-blur"></div>
-                    </div>
-
-                </div>
-
+            <!-- 2 · Daily Insight (accent) -->
+            <div class="bc accent">
+                <div class="insight-deco d1"></div>
+                <div class="insight-deco d2"></div>
+                <div class="bc-label">Daily Insight</div>
+                <p class="insight-title">60% of people share headlines without reading the full article.</p>
+                <p class="insight-sub">Your critical thinking is your strongest defence against misinformation. Pause before you share.</p>
+                <a href="chatbot.html" class="insight-cta">
+                    Talk to AI <i data-feather="arrow-right"></i>
+                </a>
             </div>
 
-        </section>
+            <!-- 3 · Misinformation Score -->
+            <div class="bc bc-score">
+                <div class="bc-label"><i data-feather="activity"></i> Misinformation Score</div>
+                <div class="score-num" id="score-value" style="color:var(--text-muted);">--</div>
+                <div class="risk-tag" id="risk-label" style="color:var(--text-muted);">Run analysis to see score</div>
+                <div class="pill-row">
+                    <span class="bpill" id="emotion-pill">Emotion: --</span>
+                    <span class="bpill" id="credibility-pill">Credibility: --</span>
+                </div>
+                <span class="bc-timestamp" id="analysis-timestamp"></span>
+            </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h2 class="footer-logo">Clarity</h2>
-                    <p class="footer-tag">Think Clearly. Choose Wisely.</p>
+            <!-- 4 · Summary (span-2) -->
+            <div class="bc bc-summary span-2">
+                <div class="bc-label"><i data-feather="align-left"></i> Summary</div>
+                <p id="summary-text" class="placeholder-note">Paste text above and click Analyze — a plain-language summary will appear here.</p>
+            </div>
+
+            <!-- 5 · Detected Issues -->
+            <div class="bc">
+                <div class="bc-label"><i data-feather="alert-triangle"></i> Detected Issues</div>
+                <div id="bias-list"><p class="placeholder-note">Fallacies and cognitive distortions will appear here.</p></div>
+            </div>
+
+            <!-- 6 · Next Steps -->
+            <div class="bc">
+                <div class="bc-label"><i data-feather="check-circle"></i> Next Steps</div>
+                <div id="rec-list"><p class="placeholder-note">Actionable recommendations will appear here.</p></div>
+            </div>
+
+            <!-- 7 · Team -->
+            <div class="bc accent-soft">
+                <div class="bc-label"><i data-feather="users"></i> Team</div>
+                <div class="team-name">NeuroFusion</div>
+                <ul class="team-ul">
+                    <li>Moumita Paul</li>
+                    <li>Likith C</li>
+                    <li>Shraddha B R</li>
+                    <li>Ruhi Sharma</li>
+                    <li>Arnav Elluri</li>
+                </ul>
+            </div>
+
+            <!-- 8 · Guided Reflection (AI-generated, shown after analysis) -->
+            <div class="bc bc-ai-reflect span-3" id="reflection-steps">
+                <div class="bc-label"><i data-feather="compass"></i> Guided Reflection</div>
+                <div class="ai-reflect-list" id="reflection-list"></div>
+            </div>
+
+            <!-- 9 · Manual 5-Step Reflection Guide -->
+            <div class="bc bc-reflection span-2">
+                <div class="bc-label"><i data-feather="edit-3"></i> 5-Step Reflection</div>
+
+                <div class="step-track" id="r-track">
+                    <div class="step-seg active" id="rs-1"></div>
+                    <div class="step-seg" id="rs-2"></div>
+                    <div class="step-seg" id="rs-3"></div>
+                    <div class="step-seg" id="rs-4"></div>
+                    <div class="step-seg" id="rs-5"></div>
                 </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="scanner.html">Scanner</a></li>
-                        <li><a href="clarity_analysis.html">Clarity Analysis</a></li>
-                    </ul>
+
+                <div id="r-steps-wrapper">
+                    <div class="reflect-label" id="r-step-label">Step 1 of 5 · Pause &amp; Breathe</div>
+                    <div class="reflect-prompt" id="r-prompt">Before reacting, what is this content actually claiming? Summarise it in your own words.</div>
+                    <textarea id="r-input" placeholder="The content claims that…"></textarea>
+                    <div class="reflect-nav">
+                        <span class="reflect-counter" id="r-counter">1 / 5</span>
+                        <div class="reflect-actions">
+                            <button class="rbtn rbtn-ghost" id="r-prev" onclick="rPrev()" disabled>Previous</button>
+                            <button class="rbtn rbtn-primary" id="r-next" onclick="rNext()">Next</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="footer-bottom">
-                    <p class="footer-copy">© 2025 NeuroFusion Tech • All Rights Reserved</p>
+
+                <div id="r-done" class="reflect-done" style="display:none;">
+                    <div class="reflect-done-icon"><i data-feather="check"></i></div>
+                    <h3>Reflection Complete</h3>
+                    <p>You've thought critically through all five steps. Great work.</p>
+                    <button class="rbtn rbtn-primary" onclick="rRestart()">Start Over</button>
                 </div>
             </div>
-        </footer>
 
-    </main>
+            <!-- 10 · Chat CTA -->
+            <div class="bc accent" style="display:flex; flex-direction:column; justify-content:space-between;">
+                <div class="insight-deco d1"></div>
+                <div>
+                    <div class="bc-label">AI Companion</div>
+                    <p style="color:rgba(255,255,255,0.9); font-size:1.05rem; font-weight:600; line-height:1.45; margin:0 0 0.5rem;">
+                        Need to talk through what you're feeling?
+                    </p>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.82rem; margin:0;">
+                        Our AI companion listens, validates, and gently guides — no judgement.
+                    </p>
+                </div>
+                <a href="chatbot.html" class="insight-cta" style="margin-top:1.5rem; align-self:flex-start;">
+                    Open Chat <i data-feather="arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="background:#fff;">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h2 class="footer-logo">Clarity</h2>
+                <p class="footer-tag">Think Clearly. Choose Wisely.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Pages</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Dashboard</a></li>
+                    <li><a href="chatbot.html">AI Chat</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2025 NeuroFusion Tech · All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="script.js"></script>
     <script>
-        // Initialize feather icons
-        feather.replace();
-        
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                    const icon = this.querySelector('i');
-                    if (navLinks.classList.contains('active')) {
-                        feather.icons.x.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    } else {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
-            }
-            
-            // Close menu when clicking on a nav link
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('active');
-                    const icon = document.querySelector('.menu-toggle i');
-                    if (icon) {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
+        /* ===== RENDER RESULTS OVERRIDES FOR BENTO ===== */
+
+        /* Replace pill-chip with bento rec-chip */
+        const _origRender = window.renderResults;
+        window.renderResults = function(data) {
+            _origRender(data);
+            /* Re-style rec chips to match bento */
+            document.querySelectorAll('#rec-list .pill-chip').forEach(el => {
+                el.className = 'rec-chip';
             });
-        });
+            /* Show reflection card */
+            const rfCard = document.getElementById('reflection-steps');
+            if (rfCard) rfCard.classList.add('visible');
+            /* Re-style bias cards */
+            document.querySelectorAll('#bias-list .bias-card').forEach(card => {
+                card.className = 'issue-item';
+                const title = card.querySelector('.bias-card-title');
+                if (title) title.className = 'issue-title';
+            });
+            /* Re-run feather icons for new elements */
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        /* Remap reflection-list to bento AI style */
+        const _origRenderOrig = renderResults;
+
+        /* ===== 5-STEP REFLECTION LOGIC ===== */
+        const STEPS = [
+            { label: 'Pause & Breathe',       prompt: 'Before reacting, what is this content actually claiming? Summarise it in your own words.',                               placeholder: 'The content claims that…' },
+            { label: 'Identify Emotions',      prompt: 'What emotions does this trigger in you? Are you scared, angry, excited, or validated?',                                   placeholder: 'This makes me feel… because…' },
+            { label: 'Question the Source',    prompt: 'Who created this content? What might be their motivation? Is this a reliable, unbiased source?',                         placeholder: 'The source is… Their motivation might be…' },
+            { label: 'Consider Alternatives',  prompt: 'What is an opposing viewpoint? What would someone who disagrees say? What evidence could challenge this?',               placeholder: 'Someone might argue that… Counter-evidence could be…' },
+            { label: 'Final Reflection',       prompt: 'After this analysis, has your initial reaction changed? What will you do with this information?',                        placeholder: 'My conclusion is… I will…' }
+        ];
+
+        let rStep = 1;
+        const rResponses = {};
+
+        function rUpdateUI() {
+            const s = STEPS[rStep - 1];
+            document.getElementById('r-step-label').textContent = `Step ${rStep} of 5 · ${s.label}`;
+            document.getElementById('r-prompt').textContent = s.prompt;
+            const inp = document.getElementById('r-input');
+            inp.placeholder = s.placeholder;
+            inp.value = rResponses[rStep] || '';
+            document.getElementById('r-counter').textContent = `${rStep} / 5`;
+            document.getElementById('r-prev').disabled = rStep === 1;
+
+            const nextBtn = document.getElementById('r-next');
+            nextBtn.textContent = rStep === 5 ? 'Complete' : 'Next';
+
+            /* Update progress segments */
+            for (let i = 1; i <= 5; i++) {
+                const seg = document.getElementById(`rs-${i}`);
+                seg.className = 'step-seg' + (i < rStep ? ' done' : i === rStep ? ' active' : '');
+            }
+        }
+
+        function rSave() {
+            rResponses[rStep] = document.getElementById('r-input').value;
+        }
+
+        function rNext() {
+            rSave();
+            if (rStep === 5) {
+                document.getElementById('r-steps-wrapper').style.display = 'none';
+                document.getElementById('r-done').style.display = 'block';
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`rs-${i}`).className = 'step-seg done';
+                }
+                if (typeof feather !== 'undefined') feather.replace();
+                return;
+            }
+            rStep++;
+            rUpdateUI();
+        }
+
+        function rPrev() {
+            rSave();
+            if (rStep > 1) { rStep--; rUpdateUI(); }
+        }
+
+        function rRestart() {
+            rStep = 1;
+            Object.keys(rResponses).forEach(k => delete rResponses[k]);
+            document.getElementById('r-steps-wrapper').style.display = '';
+            document.getElementById('r-done').style.display = 'none';
+            rUpdateUI();
+        }
     </script>
-
 </body>
-
 </html>

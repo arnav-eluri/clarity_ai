@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .score-meter {
             height: 20px;
@@ -62,11 +63,8 @@
 <body>
     <!-- Preloader -->
     <div class="preloader-container">
-        <div class="loader-box">
-            <div class="l1"></div>
-            <div class="l2"></div>
-            <div class="l3"></div>
-        </div>
+        <div class="preloader-logo">Clarity</div>
+        <div class="preloader-track"><div class="preloader-fill"></div></div>
     </div>
 
     <!-- Navigation -->
@@ -90,7 +88,7 @@
 
     <main id="app">
         <!-- Hero Section -->
-        <section class="hero-section">
+        <section class="hero-section compact">
             <div class="hero-content">
                 <h1>Clarity Analysis</h1>
                 <p>Analyze text for cognitive load, clarity, and potential distortions</p>
@@ -248,62 +246,6 @@
     </main>
     <script src="script.js"></script>
     <script>
-        // Initialize feather icons
-        feather.replace();
-        
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                    const icon = this.querySelector('i');
-                    if (navLinks.classList.contains('active')) {
-                        feather.icons.x.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    } else {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
-            }
-            
-            // Close menu when clicking on a nav link
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('active');
-                    const icon = document.querySelector('.menu-toggle i');
-                    if (icon) {
-                        feather.icons.menu.toSvg().then(svg => {
-                            icon.outerHTML = svg;
-                        });
-                    }
-                });
-            });
-        });
-        
-        // Show preloader while page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Hide preloader when page is loaded
-            setTimeout(() => {
-                const preloader = document.querySelector('.preloader-container');
-                if (preloader) {
-                    preloader.classList.add('fade-out');
-                    setTimeout(() => {
-                        preloader.style.display = 'none';
-                    }, 500);
-                }
-            }, 1000);
-
-            // Initialize feather icons
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-        });
 
         async function analyzeText() {
             const textInput = document.getElementById('text-input').value.trim();

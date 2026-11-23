@@ -307,6 +307,12 @@
     </style>
 </head>
 <body>
+    <!-- Preloader -->
+    <div class="preloader-container">
+        <div class="preloader-logo">Clarity</div>
+        <div class="preloader-track"><div class="preloader-fill"></div></div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="logo">
@@ -327,7 +333,7 @@
     </nav>
 
     <main id="app">
-        <section class="hero-section">
+        <section class="hero-section compact">
             <div class="hero-content">
                 <h1>Reflection Guide</h1>
                 <p>Slow down your thoughts and see the situation with clearer perspective</p>
@@ -448,6 +454,26 @@
         </div>
     </main>
 
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h2 class="footer-logo">Clarity</h2>
+                <p class="footer-tag">Think Clearly. Choose Wisely.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="scanner.html">Scanner</a></li>
+                    <li><a href="clarity_analysis.html">Clarity Analysis</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2025 NeuroFusion Tech • All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
     <script>
         const STEP_COUNT = 5;
         const DEFAULT_REFLECTION_STEPS = {
@@ -479,7 +505,6 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            feather.replace();
             loadSavedResponses();
             setupReflectionFetcher();
         });

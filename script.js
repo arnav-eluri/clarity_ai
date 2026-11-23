@@ -79,7 +79,10 @@ async function analyzeContent() {
 function showErrorMessage(message) {
     const resultsArea = document.getElementById('results-area');
     if (!resultsArea) {
-        alert(message);
+        const riskLabel = document.getElementById('risk-label');
+        const scoreVal  = document.getElementById('score-value');
+        if (scoreVal)  { scoreVal.textContent  = '!';  scoreVal.style.color  = '#dc2626'; }
+        if (riskLabel) { riskLabel.textContent = '⚠ ' + message; riskLabel.style.color = '#dc2626'; }
         return;
     }
     
@@ -203,23 +206,23 @@ function renderResults(data) {
         reflectionsList.innerHTML = '';
         if (Array.isArray(data.reflection_steps) && data.reflection_steps.length > 0) {
             reflectionsWrapper.classList.remove('hidden');
+            reflectionsWrapper.classList.add('visible');
             data.reflection_steps.forEach((step, index) => {
                 const stepName = step.step || `Step ${index + 1}`;
                 const stepPrompt = step.prompt || 'Focus on what feels most important right now.';
                 const stepResponse = step.response || 'No guidance provided for this step.';
-                const li = document.createElement('li');
-                li.className = 'reflection-item';
-                li.innerHTML = `
-                    <div class="reflection-step-header">
-                        <span class="reflection-step-name">${stepName}</span>
-                        <small class="reflection-step-prompt">${stepPrompt}</small>
-                    </div>
-                    <p class="reflection-response">${stepResponse}</p>
+                const div = document.createElement('div');
+                div.className = 'ai-reflect-item';
+                div.innerHTML = `
+                    <div class="ai-reflect-step">${stepName}</div>
+                    <div class="ai-reflect-prompt">${stepPrompt}</div>
+                    <p class="ai-reflect-response">${stepResponse}</p>
                 `;
-                reflectionsList.appendChild(li);
+                reflectionsList.appendChild(div);
             });
         } else {
             reflectionsWrapper.classList.add('hidden');
+            reflectionsWrapper.classList.remove('visible');
         }
     }
 }
@@ -237,6 +240,8 @@ function scrollToSection(id) {
 
 // Initialize scroll functionality
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof feather !== 'undefined') feather.replace();
+
     // Handle click on scroll indicator
     const scrollIndicator = document.querySelector('.scroll-indicator');
     if (scrollIndicator) {
@@ -246,14 +251,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle window scroll event
-    window.addEventListener('scroll', function() {
-        // This ensures the scroll event isn't being prevented
-        console.log('Scrolling...');
-    });
-
     // Chatbot wiring
     initChatbot();
+    // Mobile menu
+    initMobileMenu();
+    // Navbar scroll shadow
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 10);
+        }, { passive: true });
+    }
 });
 
 // Chatbot Logic
@@ -336,6 +344,31 @@ function initChatbot() {
     });
 }
 
+// Mobile menu — feather.toSvg() is synchronous, not a Promise
+function initMobileMenu() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (!menuToggle || !navLinks) return;
+
+    menuToggle.addEventListener('click', function () {
+        navLinks.classList.toggle('active');
+        const icon = this.querySelector('i, svg');
+        if (icon) {
+            icon.outerHTML = navLinks.classList.contains('active')
+                ? feather.icons.x.toSvg()
+                : feather.icons.menu.toSvg();
+        }
+    });
+
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+            const icon = menuToggle.querySelector('i, svg');
+            if (icon) icon.outerHTML = feather.icons.menu.toSvg();
+        });
+    });
+}
+
 // Preloader
 function initPreloader() {
     const preloader = document.querySelector('.preloader-container');
@@ -368,7 +401,7 @@ function initPreloader() {
     }
 
     let pageLoaded = false;
-    const MIN_LOAD_TIME = 3500;
+    const MIN_LOAD_TIME = 900;
     const loadStartTime = Date.now();
 
     function handleLoad() {

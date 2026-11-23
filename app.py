@@ -30,7 +30,7 @@ client = OpenAI(
     api_key=API_KEY,
 )
 
-MODEL_NAME = "google/gemini-2.0-flash-001"
+MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"
 
 # -----------------------------
 # CHAT SYSTEM PROMPT
@@ -197,7 +197,7 @@ def analyze_content():
             {"role": "user", "content": prompt}
         ]
         
-        raw_output = _call_openrouter(messages, temperature=0.7, response_format="json", max_tokens=4000)
+        raw_output = _call_openrouter(messages, temperature=0.7, response_format="json", max_tokens=1500)
         cleaned = _clean_response(raw_output)
 
         analysis = json.loads(cleaned)
@@ -285,7 +285,7 @@ Output format ONLY (as JSON, nothing else):
 }}
 """
     try:
-        raw = _call_openrouter([{"role": "user", "content": prompt}], temperature=0.6, response_format="json", max_tokens=1024)
+        raw = _call_openrouter([{"role": "user", "content": prompt}], temperature=0.6, response_format="json", max_tokens=512)
         cleaned = _clean_response(raw)
         questions = json.loads(cleaned)
         return jsonify({"questions": _sanitize_question_map(questions)})
@@ -352,7 +352,7 @@ def chat_with_ai():
     messages.append({"role": "user", "content": user_message})
 
     try:
-        reply_text = _call_openrouter(messages, temperature=0.5, max_tokens=700).strip()
+        reply_text = _call_openrouter(messages, temperature=0.5, max_tokens=350).strip()
         return jsonify({"reply": reply_text})
     except Exception as e:
         return jsonify({"error": "Failed to chat with AI", "details": str(e)}), 500
