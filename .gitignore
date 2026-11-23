@@ -2,6 +2,11 @@
 .env
 .env.local
 .env.*.local
+.env.*
+*.env
+secrets.json
+secrets.yaml
+secrets.yml
 
 # Python
 __pycache__/
@@ -68,6 +73,14 @@ yarn.lock
 # Cache
 .cache/
 *.cache
+
+# Flask
+instance/
+.flask_session/
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+*.ipynb
 
 # Temporary files
 *.tmp
