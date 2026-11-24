@@ -1,9 +1,17 @@
 import os
 import json
+from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
+
+def _load_prompt(name: str) -> str:
+    return (Path(__file__).parent / "prompts" / f"{name}.st").read_text(encoding="utf-8").strip()
+
+CHAT_SYSTEM_PROMPT = _load_prompt("chat")
+ANALYZER_SYSTEM_PROMPT = _load_prompt("analyzer")
+REFLECTION_SYSTEM_PROMPT = _load_prompt("reflection")
 
 # Load environment variables
 load_dotenv()
@@ -20,137 +28,39 @@ def set_security_headers(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
-# Configure OpenRouter API
-API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("GEMINI_API_KEY") # Fallback to existing key in env if renamed
+# Configure Groq API
+API_KEY = os.getenv("GROQ_API_KEY")
 if not API_KEY:
-    print("Warning: OPENROUTER_API_KEY not found in environment variables.")
+    print("Warning: GROQ_API_KEY not found in environment variables.")
 
 client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
+    base_url="https://api.groq.com/openai/v1",
     api_key=API_KEY,
 )
 
-MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"
+MODEL_ANALYSIS = "llama-3.3-70b-versatile"   # structured JSON output — needs quality
+MODEL_FAST     = "llama-3.1-8b-instant"       # chat and reflection — speed over scale
 
-# -----------------------------
-# CHAT SYSTEM PROMPT
-# -----------------------------
-CHAT_SYSTEM_PROMPT = """
-You are ClarityBot — a warm AI companion who gives short, supportive, and clear psychological guidance.
-You are NOT a therapist. Never claim to be one.
-
-Your replies must ALWAYS be:
-- Short (5–7 lines max)
-- In bullet points ONLY
-- Warm, gentle, and supportive
-- Easy to understand (no jargon unless explained simply)
-
-When replying:
-1. Briefly validate the user’s feelings.
-2. Identify the thinking pattern (if visible).
-3. Give a simple, calmer reframe.
-4. Suggest 2–3 grounding/practical steps.
-5. Ask ONE soft follow-up question.
-
-Tone:
-- Human, soft, kind
-- Never lecture
-- Never write long paragraphs
-- Never overwhelm the user
-
-If user expresses self-harm or crisis:
-- Stay calm
-- Encourage reaching out to real humans immediately
-- Never give harmful instructions
-"""
-
-# -----------------------------
-# ANALYZER SYSTEM PROMPT
-# -----------------------------
-SYSTEM_PROMPT = """
-You are an expert cognitive scientist, fact-checker, and critical thinking coach.
-Always guide the user through the following FIVE reflection steps before drawing conclusions.
-
-Return a JSON object with this exact structure (and nothing else):
-{
-  "misinformation_score": integer 0-100,
-  "credibility_rating": "High" | "Medium" | "Low",
-  "emotional_intensity": "Low" | "Medium" | "High",
-  "summary": string,
-  "biases": [
-    {"type": string, "text_snippet": string, "explanation": string}
-  ],
-  "recommendations": [string],
-  "reflection_steps": [
-    {
-      "step": "Pause & Breathe",
-      "prompt": "Before reacting, take a moment. What is the content claiming? Write it in your own words.",
-      "placeholder": "The content claims that...",
-      "response": string written in second person encouraging deliberation
-    },
-    {
-      "step": "Identify Emotions",
-      "prompt": "What emotions does this content trigger? Are you feeling scared, angry, excited, or validated?",
-      "placeholder": "This makes me feel...because...",
-      "response": string acknowledging emotional impact
-    },
-    {
-      "step": "Question the Source",
-      "prompt": "Who created this? What might be their motivation? Is this a reliable, unbiased source?",
-      "placeholder": "The source is...Their motivation might be...",
-      "response": string that inspects credibility
-    },
-    {
-      "step": "Consider Alternatives",
-      "prompt": "What's an opposing viewpoint? What would someone who disagrees say? What evidence would challenge this?",
-      "placeholder": "Someone might argue that...The counter-evidence could be...",
-      "response": string that fairly represents counterpoints
-    },
-    {
-      "step": "Final Reflection",
-      "prompt": "After this analysis, has your initial reaction changed? What will you do with this information?",
-      "placeholder": "My conclusion is...I will...",
-      "response": string summarizing how to act going forward
-    }
-  ]
-}
-
-Blend psychological safety with analytical rigor. NEVER skip or combine steps. Each response should prompt the user to pause, think, and articulate their reasoning in depth.
-
-Scoring Logic Guide:
-- Base Score: 0 (Safe)
-- High Emotional Intensity: +15
-- Logical Fallacies: +10 each
-- Cognitive Distortions: +5 each
-- Aggressive/Polarizing Language: +10
-- Lack of Citations/Evidence for Claims: +10
-
-Thresholds:
-- 0-20: High Credibility (Green)
-- 21-50: Medium Credibility (Yellow)
-- 51+: Low Credibility / High Risk (Red)
-"""
+SYSTEM_PROMPT = ANALYZER_SYSTEM_PROMPT  # alias used by /api/analyze
 
 # -----------------------------
 # HELPER FUNCTIONS
 # -----------------------------
 def _clean_response(raw_text: str):
-    """Remove ```json code blocks."""
     cleaned = raw_text.strip()
     if cleaned.startswith("```"):
         cleaned = cleaned.replace("```json", "").replace("```", "").strip()
     return cleaned
 
-def _call_openrouter(messages, temperature=0.7, response_format=None, max_tokens=2000):
+def _call_groq(messages, temperature=0.7, response_format=None, max_tokens=2000, model=None):
     try:
         kwargs = {
-            "model": MODEL_NAME,
+            "model": model or MODEL_ANALYSIS,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
         if response_format == "json":
-            # Just specify it in instructions, OpenRouter models vary in support for response_format={"type":"json_object"}
             pass
             
         completion = client.chat.completions.create(**kwargs)
@@ -197,7 +107,7 @@ def analyze_content():
             {"role": "user", "content": prompt}
         ]
         
-        raw_output = _call_openrouter(messages, temperature=0.7, response_format="json", max_tokens=1500)
+        raw_output = _call_groq(messages, temperature=0.5, response_format="json", max_tokens=1200)
         cleaned = _clean_response(raw_output)
 
         analysis = json.loads(cleaned)
@@ -244,16 +154,16 @@ def _calculate_reflection_score(responses):
     return min(round((total_score / max_possible) * 100, 1), 100) if max_possible > 0 else 0
 
 def _generate_analysis(score, responses):
-    if score >= 80: analysis = "🌟 Excellent reflection! Your responses show deep thinking and self-awareness."
-    elif score >= 60: analysis = "💡 Good job! Your reflection shows solid effort."
-    elif score >= 40: analysis = "📝 You've made a good start."
-    else: analysis = "🌱 This is a beginning. Reflection is a skill that grows with practice."
-    
+    if score >= 80: analysis = "Excellent reflection. Your responses show deep thinking and self-awareness."
+    elif score >= 60: analysis = "Good effort. Your reflection shows solid engagement."
+    elif score >= 40: analysis = "A good start. Keep building on these thoughts."
+    else: analysis = "This is a beginning. Reflection is a skill that grows with practice."
+
     response_count = len(responses)
-    if response_count < 3: analysis += "\n\nYou've completed a few steps. Completing more steps will provide a more comprehensive reflection."
+    if response_count < 3: analysis += "\n\nCompleting more steps will give you a more complete picture."
     emotions = ['happy', 'sad', 'angry', 'excited', 'nervous', 'proud', 'ashamed', 'grateful']
     has_emotion = any(emotion in str(responses).lower() for emotion in emotions)
-    if not has_emotion and response_count > 0: analysis += "\n\nTip: Try to name specific emotions you're feeling. This can help with emotional awareness."
+    if not has_emotion and response_count > 0: analysis += "\n\nTip: Try naming specific emotions. It helps build emotional awareness."
     return analysis
 
 @app.route('/api/reflection/questions', methods=['POST'])
@@ -285,7 +195,7 @@ Output format ONLY (as JSON, nothing else):
 }}
 """
     try:
-        raw = _call_openrouter([{"role": "user", "content": prompt}], temperature=0.6, response_format="json", max_tokens=512)
+        raw = _call_groq([{"role": "system", "content": REFLECTION_SYSTEM_PROMPT}, {"role": "user", "content": prompt}], temperature=0.5, response_format="json", max_tokens=400, model=MODEL_FAST)
         cleaned = _clean_response(raw)
         questions = json.loads(cleaned)
         return jsonify({"questions": _sanitize_question_map(questions)})
@@ -324,7 +234,7 @@ Now generate the NEXT SINGLE QUESTION ONLY (Step {next_step}) in 1 sentence.
 ONLY return the question text. No explanation.
 """
     try:
-        question = _call_openrouter([{"role": "user", "content": prompt}], temperature=0.6, max_tokens=200).strip()
+        question = _call_groq([{"role": "system", "content": REFLECTION_SYSTEM_PROMPT}, {"role": "user", "content": prompt}], temperature=0.5, max_tokens=100, model=MODEL_FAST).strip()
         if not question: raise ValueError("Empty question returned")
         return jsonify({"question": question})
     except Exception as e:
@@ -352,7 +262,7 @@ def chat_with_ai():
     messages.append({"role": "user", "content": user_message})
 
     try:
-        reply_text = _call_openrouter(messages, temperature=0.5, max_tokens=350).strip()
+        reply_text = _call_groq(messages, temperature=0.5, max_tokens=250, model=MODEL_FAST).strip()
         return jsonify({"reply": reply_text})
     except Exception as e:
         return jsonify({"error": "Failed to chat with AI", "details": str(e)}), 500
