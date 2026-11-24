@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -38,8 +39,8 @@ client = OpenAI(
     api_key=API_KEY,
 )
 
-MODEL_ANALYSIS = "llama-3.3-70b-versatile"   # structured JSON output — needs quality
-MODEL_FAST     = "llama-3.1-8b-instant"       # chat and reflection — speed over scale
+MODEL_ANALYSIS = "openai/gpt-oss-120b" # 120B — best for structured JSON analysis
+MODEL_FAST     = "openai/gpt-oss-20b"  # 20B — fast for chat and reflection
 
 SYSTEM_PROMPT = ANALYZER_SYSTEM_PROMPT  # alias used by /api/analyze
 
@@ -47,9 +48,14 @@ SYSTEM_PROMPT = ANALYZER_SYSTEM_PROMPT  # alias used by /api/analyze
 # HELPER FUNCTIONS
 # -----------------------------
 def _clean_response(raw_text: str):
+    # Find the outermost JSON object, ignoring any prose before or after
+    match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+    if match:
+        return match.group(0)
+    # Fallback: strip markdown fences
     cleaned = raw_text.strip()
     if cleaned.startswith("```"):
-        cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+        cleaned = re.sub(r'^```[a-z]*\n?', '', cleaned).rstrip('`').strip()
     return cleaned
 
 def _call_groq(messages, temperature=0.7, response_format=None, max_tokens=2000, model=None):
@@ -61,7 +67,7 @@ def _call_groq(messages, temperature=0.7, response_format=None, max_tokens=2000,
             "max_tokens": max_tokens,
         }
         if response_format == "json":
-            pass
+            kwargs["response_format"] = {"type": "json_object"}
             
         completion = client.chat.completions.create(**kwargs)
         return completion.choices[0].message.content

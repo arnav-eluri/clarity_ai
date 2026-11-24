@@ -307,7 +307,7 @@
             }
 
             setResultsVisibility({ showLoader: false, showContent: true, showError: false });
-            resultsArea.classList.remove('hidden');
+            if (resultsArea) resultsArea.classList.remove('hidden');
 
             const toNumber = (value, fallback = 0) => {
                 const num = Number(value);

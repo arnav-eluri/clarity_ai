@@ -114,7 +114,7 @@ function showErrorMessage(message) {
 
 function renderResults(data) {
     const resultsArea = document.getElementById('results-area');
-    resultsArea.classList.remove('hidden');
+    if (resultsArea) resultsArea.classList.remove('hidden');
 
     // Score + pills
     const scoreVal = document.getElementById('score-value');
@@ -124,7 +124,7 @@ function renderResults(data) {
     const timestamp = document.getElementById('analysis-timestamp');
 
     const score = typeof data.misinformation_score === 'number' ? data.misinformation_score : '--';
-    scoreVal.innerText = score;
+    if (scoreVal) scoreVal.innerText = score;
 
     let color = '#10B981';
     let riskText = 'Low risk · information appears stable.';
@@ -136,7 +136,7 @@ function renderResults(data) {
         riskText = 'Moderate risk · cross-check claims.';
     }
 
-    scoreVal.style.color = color;
+    if (scoreVal) scoreVal.style.color = color;
     if (riskLabel) {
         riskLabel.innerText = riskText;
         riskLabel.style.color = color;
@@ -159,10 +159,12 @@ function renderResults(data) {
         });
     }
 
-    document.getElementById('summary-text').innerText = data.summary || 'No summary available.';
+    const summaryEl = document.getElementById('summary-text');
+    if (summaryEl) summaryEl.innerText = data.summary || 'No summary available.';
 
     // Biases
     const biasList = document.getElementById('bias-list');
+    if (!biasList) return;
     biasList.innerHTML = '';
     if (data.biases && data.biases.length > 0) {
         data.biases.forEach(bias => {
@@ -184,6 +186,7 @@ function renderResults(data) {
 
     // Recommendations
     const recList = document.getElementById('rec-list');
+    if (!recList) return;
     recList.innerHTML = '';
     if (data.recommendations && data.recommendations.length > 0) {
         data.recommendations.forEach(rec => {
